@@ -10,6 +10,7 @@ Live Domains
 Behavior
 - No HTML/JS UI; `GET /` responds with a single image file.
 - Each refresh returns a random file from the `photos/` folder.
+- Caching is disabled (no-store) so the image varies on every request.
 
 Where To Put Photos
 - Upload images via SFTP to: `/var/www/apps/thistouristdoesnotexist/photos/`
@@ -19,44 +20,44 @@ Where To Put Photos
 
 Nginx Configuration Summary
 - Vhost: `/etc/nginx/sites-available/thistouristdoesnotexist.com` (enabled)
-- Root rewrites to the photos directory and serves a random file:
-
-  - Internal rewrite maps `/` → `/photos/`
-  - Exact `location = /photos/` uses `random_index on;` to pick a file
-  - `location ^~ /photos/` serves specific files (no directory listing)
+- Root rewrites to the photos directory and serves a random file; caching is disabled for randomness.
 
 Snippet (what’s installed)
 ```
 server {
-  listen 80; listen [::]:80;
+  listen 443 ssl; listen [::]:443 ssl;
   server_name thistouristdoesnotexist.com www.thistouristdoesnotexist.com;
 
   # / -> /photos/ (internal)
   rewrite ^/$ /photos/ last;
 
-  # Return a random file from photos
+  # Return a random file from photos (no caching)
   location = /photos/ {
     root /var/www/apps/thistouristdoesnotexist;
     random_index on;
+    expires off;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
   }
 
-  # Direct file access (no listing)
+  # Direct file access (no listing; no caching)
   location ^~ /photos/ {
     root /var/www/apps/thistouristdoesnotexist;
     autoindex off;
     try_files $uri =404;
+    expires off;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
   }
+}
 
-  # Cache images for 7 days
-  location ~* \.(?:png|jpe?g|gif|webp|svg)$ {
-    expires 7d;
-    add_header Cache-Control "public, max-age=604800, immutable";
-  }
+server {
+  listen 80; listen [::]:80;
+  server_name thistouristdoesnotexist.com www.thistouristdoesnotexist.com;
+  return 301 https://$host$request_uri;
 }
 ```
 
 HTTPS
-- Enabled via Certbot for both apex and www.
+- Enabled via Certbot for both apex and www (HTTP redirects to HTTPS).
 - To renew/test: `sudo certbot renew --dry-run`
 
 Troubleshooting
