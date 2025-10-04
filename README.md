@@ -1,7 +1,7 @@
 thistouristdoesnotexist
 =======================
 
-Zero‑UI image stream: every page load returns one random photo. No HTML shell, no JavaScript — just an image response with caching disabled so it changes on every refresh.
+Minimal UI image stream: every page load returns one random photo, rendered inside a bare HTML shell with no text chrome. The image response is uncached so it changes on every refresh.
 
 > October 2025: The root path now serves a lightweight HTML wrapper that embeds Google Analytics property `G-4CHJNC8WWB`, displays the random image inside an `<img>` tag, and still sources content from nginx `random_index`. Direct links under `/photos/…` continue to return raw images.
 
@@ -11,11 +11,11 @@ Live
 
 Overview
 - Purpose: Serve a different image on each request for playful “this person/place does not exist” vibes, wallpapers, or inspiration.
-- UX: Hitting `/` returns a random file from a server folder; deep links under `/photos/<filename>` serve that exact file.
+- UX: Hitting `/` serves the minimal HTML shell, which immediately loads `/photos/?v=<timestamp>` to fetch a random file; deep links under `/photos/<filename>` serve that exact file.
 - Simplicity: No app server — implemented directly in nginx via `random_index`.
 
 How It Works
-1) Incoming `GET /` is internally rewritten to `/photos/`.
+1) Incoming `GET /` serves `index.html`, an ultra-minimal page that immediately requests `/photos/?v=<timestamp>` inside an `<img>` element.
 2) nginx `location = /photos/` enables `random_index on;` which selects a random file within the directory and returns its contents.
 3) Caching is turned off (`Cache-Control: no-store`) to prevent browsers/CDNs from reusing the same image.
 
