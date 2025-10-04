@@ -3,6 +3,8 @@ thistouristdoesnotexist
 
 Zero‑UI image stream: every page load returns one random photo. No HTML shell, no JavaScript — just an image response with caching disabled so it changes on every refresh.
 
+> October 2025: The root path now serves a lightweight HTML wrapper that embeds Google Analytics property `G-4CHJNC8WWB`, displays the random image inside an `<img>` tag, and still sources content from nginx `random_index`. Direct links under `/photos/…` continue to return raw images.
+
 Live
 - https://thistouristdoesnotexist.com/
 - https://www.thistouristdoesnotexist.com/
